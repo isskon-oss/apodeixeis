@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Αποδείξεις Είσπραξης Ενοικίου</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mynerve&family=Playpen+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;background:#cfcfca;font-family:"Segoe UI",Arial,sans-serif;color:#222}
+  .bars{position:sticky;top:0;z-index:5}
+  .bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:8px;background:#2f3133}
+  #fmtbar{background:#3a3d40;border-top:1px solid #555}
+  .bar input[type=color]{padding:0;width:36px;height:28px}
+  .bar input[type=number]{width:62px;cursor:text}
+  .bar input[type=date]{cursor:text;color-scheme:dark}
+  .bar button.on{background:#e8741a;border-color:#e8741a}
+  .bar button,.bar select,.bar input{font:13px inherit;font-family:inherit;padding:6px 10px;border-radius:6px;border:1px solid #666;background:#444;color:#fff;cursor:pointer}
+  .bar button:hover{background:#555}
+  .bar button.primary{background:#e8741a;border-color:#e8741a;font-weight:600}
+  .bar label{color:#ddd;font-size:13px;display:flex;align-items:center;gap:5px}
+  .bar input[type=month]{cursor:text;color-scheme:dark}
+  .bar .sep{width:1px;height:24px;background:#666;margin:0 4px}
+  #stage{margin:14px auto;position:relative}
+  .sheet{width:1000px;height:610px;position:absolute;left:0;top:0;transform-origin:0 0;background:#fbfaf4;box-shadow:0 2px 14px rgba(0,0,0,.35);
+    -webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .sheet svg{position:absolute;left:0;top:0;width:1000px;height:610px}
+  .sheet input,.sheet textarea{position:absolute;border:0;background:transparent;font:15px "Segoe UI",Arial,sans-serif;color:#10264d;padding:0 3px;outline:none;height:22px;resize:none;overflow:hidden}
+  .sheet input:focus,.sheet textarea:focus{background:rgba(255,236,160,.45)}
+  .sheet .sel{outline:1.5px dashed #e8741a;outline-offset:-1px}
+  .r{text-align:right}
+  dialog{border:0;border-radius:10px;padding:18px;max-width:min(900px,94vw);width:100%;box-shadow:0 10px 40px rgba(0,0,0,.4)}
+  dialog::backdrop{background:rgba(0,0,0,.45)}
+  dialog h2{margin:0 0 10px;font-size:18px}
+  dialog label{display:block;font-size:13px;margin:8px 0 3px;color:#444}
+  dialog input,dialog textarea{width:100%;padding:6px 8px;border:1px solid #aaa;border-radius:5px;font:14px inherit;font-family:inherit}
+  dialog .row{display:flex;gap:10px}
+  dialog .row>div{flex:1}
+  dialog .foot{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap}
+  dialog button{padding:6px 12px;border-radius:6px;border:1px solid #999;background:#f2f2f2;cursor:pointer;font:13px inherit;font-family:inherit}
+  dialog button.primary{background:#e8741a;color:#fff;border-color:#e8741a}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{padding:5px 7px;border-bottom:1px solid #ddd;text-align:left}
+  th{background:#f3f3f3;position:sticky;top:0}
+  td.n{text-align:right;white-space:nowrap}
+  .scroll{max-height:55vh;overflow:auto;border:1px solid #ddd;border-radius:6px;margin-top:8px}
+  #toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:8px 16px;border-radius:20px;font-size:13px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:20}
+  #toast.show{opacity:.95}
+  @page{size:210mm 148mm;margin:0}
+  @media print{
+    html,body{background:#fff;width:210mm;height:148mm;overflow:hidden}
+    .no-print,#toast{display:none!important}
+    #stage{margin:0!important;width:210mm!important;height:148mm!important;position:relative}
+    .sheet{box-shadow:none;background:#fff;transform:scale(.7937)!important;left:0;top:37px}
+    .sheet input:focus,.sheet textarea:focus{background:transparent}
+    .sheet .sel{outline:none}
+  }
+</style>
+</head>
+<body>
+
+<div class="bars no-print">
+<div class="bar">
+  <button id="bNew">Νέα απόδειξη</button>
+  <button id="bNext" title="Νέα απόδειξη με τα ίδια στοιχεία για το επόμενο χρονικό διάστημα">Επόμενο διάστημα ▸</button>
+  <label>Από <input type="date" id="pFrom"></label>
+  <label>έως <input type="date" id="pTo"></label>
+  <select id="payType" title="Τρόπος πληρωμής"><option value="">Τρόπος πληρωμής…</option><option>Μετρητά</option><option>Κατάθεση σε Τράπεζα</option></select>
+  <span class="sep"></span>
+  <select id="preset"><option value="">— Ακίνητο / Μισθωτής —</option></select>
+  <button id="bSavePreset" title="Αποθήκευση των τρεχόντων στοιχείων μισθωτή/ακινήτου">+ Αποθήκευση μισθωτή</button>
+  <button id="bDelPreset" title="Διαγραφή επιλεγμένου μισθωτή">✕</button>
+  <span class="sep"></span>
+  <button id="bSave">Αποθήκευση</button>
+  <button id="bPrint" class="primary">Εκτύπωση / Αποθήκευση PDF</button>
+  <button id="bHist">Ιστορικό</button>
+  <button id="bSet">Ρυθμίσεις</button>
+  <button id="bCloud" title="Συγχρονισμός με το cloud (Firebase)">☁ Cloud</button>
+</div>
+<div class="bar" id="fmtbar">
+  <span style="color:#ddd;font-size:13px">Μορφοποίηση επιλεγμένου πεδίου:</span>
+  <select id="fFont" title="Γραμματοσειρά"><option value="">Γραμματοσειρά…</option>
+    <optgroup label="Χειρόγραφες (με ελληνικά)">
+      <option value='Mynerve,"Segoe Print",cursive'>Mynerve</option>
+      <option value='"Playpen Sans","Segoe Print",cursive'>Playpen Sans</option>
+      <option value='"Segoe Print",cursive'>Segoe Print</option>
+      <option value='"Segoe Script",cursive'>Segoe Script</option>
+    </optgroup>
+    <optgroup label="Δικές μου (από αρχείο)" id="fCustom"></optgroup>
+    <optgroup label="Κανονικές">
+      <option value='"Segoe UI",Arial,sans-serif'>Segoe UI</option>
+      <option value='Arial,Helvetica,sans-serif'>Arial</option>
+      <option value='"Arial Narrow",Arial,sans-serif'>Arial Narrow</option>
+      <option value='Calibri,Carlito,sans-serif'>Calibri</option>
+      <option value='"Century Gothic",Avenir,sans-serif'>Century Gothic</option>
+      <option value='Verdana,Geneva,sans-serif'>Verdana</option>
+      <option value='Tahoma,Geneva,sans-serif'>Tahoma</option>
+      <option value='"Trebuchet MS",sans-serif'>Trebuchet MS</option>
+      <option value='"Times New Roman",Times,serif'>Times New Roman</option>
+      <option value='Georgia,serif'>Georgia</option>
+      <option value='"Courier New",monospace'>Courier New</option>
+      <option value='"Comic Sans MS","Ink Free",cursive'>Comic Sans MS</option>
+    </optgroup>
+  </select>
+  <button id="fLoad" title="Φόρτωση δικής σας γραμματοσειράς (.ttf, .otf, .woff, .woff2). Βεβαιωθείτε ότι υποστηρίζει ελληνικά.">＋ Γραμματοσειρά από αρχείο</button>
+  <input type="file" id="fFile" accept=".ttf,.otf,.woff,.woff2" hidden>
+  <label>Μέγεθος <input type="number" id="fSize" min="6" max="60" step="1"></label>
+  <label>Χρώμα <input type="color" id="fColor" value="#10264d"></label>
+  <button id="fBold" title="Έντονα"><b>B</b></button>
+  <button id="fItal" title="Πλάγια"><i>I</i></button>
+  <button id="fAll" title="Εφαρμογή γραμματοσειράς και χρώματος του επιλεγμένου πεδίου σε όλα τα πεδία">Γραμματοσειρά/χρώμα σε όλα</button>
+  <button id="fDef" title="Να χρησιμοποιείται σε κάθε νέα απόδειξη">Αποθήκευση ως προεπιλογή</button>
+  <button id="fReset" title="Επαναφορά της αρχικής μορφοποίησης">Επαναφορά</button>
+</div>
+</div>
+
+<div id="stage">
+<div class="sheet" id="sheet">
+<svg viewBox="0 0 1000 610" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <pattern id="ln" width="10" height="5.2" patternUnits="userSpaceOnUse"><line x1="0" y1="4.6" x2="10" y2="4.6" stroke="#f1b49c" stroke-width=".7"/></pattern>
+    <pattern id="ln2" width="10" height="5" patternUnits="userSpaceOnUse"><line x1="0" y1="4.5" x2="10" y2="4.5" stroke="#f3b087" stroke-width=".7"/></pattern>
+  </defs>
+  <!-- πλαίσιο -->
+  <rect x="5" y="38" width="950" height="537" rx="9" fill="#fbe6d3" stroke="#ef7d1f" stroke-width="1.6"/>
+
+  <!-- κουτί εκδότη -->
+  <rect x="24" y="48" width="427" height="172" rx="11" fill="#8c8d8b"/>
+  <rect x="27" y="44" width="427" height="172" rx="11" fill="#f1f0e6" stroke="#6c6d6c" stroke-width="1.4"/>
+
+  <!-- ημερομηνία -->
+  <rect x="459" y="52" width="231" height="50" rx="9" fill="#f1f0e6" stroke="#6c6d6c" stroke-width="1.4"/>
+  <text x="463" y="93" font-size="15" fill="#222" font-family="Century Gothic,Avenir,Segoe UI,Arial,sans-serif">Ημ/νια,</text>
+  <line x1="520" y1="96" x2="684" y2="96" stroke="#555" stroke-dasharray="1 2.2"/>
+
+  <!-- Νο -->
+  <rect x="697" y="56" width="242" height="47" rx="9" fill="#fbe1cb" stroke="#f3c19a" stroke-width="1.2"/>
+  <text x="706" y="93" font-size="30" font-weight="700" fill="#111" font-family="Arial Narrow,Impact,Arial,sans-serif" textLength="30" lengthAdjust="spacingAndGlyphs">No</text>
+
+  <!-- τίτλος -->
+  <rect x="460" y="105" width="479" height="55" rx="9" fill="#fde5d0" stroke="#7a7a7a" stroke-width="1.3"/>
+  <text x="466" y="140" font-size="22" font-weight="700" fill="#ee6a1b" font-family="Arial Narrow,Roboto Condensed,Arial,sans-serif" textLength="182" lengthAdjust="spacingAndGlyphs">Απόδειξη Είσπραξης Ενοικίου</text>
+  <text x="652" y="142" font-size="25" font-weight="700" fill="#ee6a1b" font-family="Arial Narrow,Arial,sans-serif" textLength="17" lengthAdjust="spacingAndGlyphs">€</text>
+  <text x="670" y="141" font-size="15" font-weight="700" font-style="italic" fill="#ee6a1b" font-family="Arial Narrow,Arial,sans-serif" textLength="28" lengthAdjust="spacingAndGlyphs">ΥΡΩ</text>
+  <rect x="703" y="111" width="123" height="43" fill="url(#ln2)"/>
+  <rect x="837" y="111" width="94" height="43" fill="url(#ln2)"/>
+  <text x="828" y="152" font-size="18" font-weight="700" fill="#222" font-family="Arial,sans-serif">,</text>
+
+  <!-- κάτω κύριο κουτί -->
+  <rect x="21" y="226" width="915" height="332" rx="11" fill="#8c8d8b"/>
+  <rect x="24" y="222" width="915" height="332" rx="11" fill="#f1f0e6" stroke="#6c6d6c" stroke-width="1.4"/>
+
+  <!-- κουτί "Έλαβα από" -->
+  <rect x="465" y="169" width="471" height="60" rx="10" fill="#8c8d8b"/>
+  <rect x="468" y="165" width="471" height="60" rx="10" fill="#f1f0e6" stroke="#6c6d6c" stroke-width="1.4"/>
+  <rect x="470" y="205" width="467" height="21" fill="#f1f0e6"/>
+  <text x="474" y="188" font-size="15" fill="#222" font-family="Century Gothic,Avenir,Segoe UI,Arial,sans-serif">Έλαβα από τ</text>
+  <line x1="474" y1="196" x2="935" y2="196" stroke="#555" stroke-dasharray="1 2.2"/>
+  <line x1="474" y1="226" x2="935" y2="226" stroke="#555" stroke-dasharray="1 2.2"/>
+
+  <!-- το ποσό των -->
+  <rect x="137" y="236" width="767" height="82" fill="url(#ln)"/>
+  <line x1="137" y1="236" x2="904" y2="236" stroke="#f3a374" stroke-width=".8"/>
+  <text x="32" y="263" font-size="15" fill="#222" font-family="Century Gothic,Avenir,Segoe UI,Arial,sans-serif">το ποσό των</text>
+
+  <!-- για ενοίκιο τ / οδός -->
+  <text x="29" y="357" font-size="15" fill="#222" font-family="Century Gothic,Avenir,Segoe UI,Arial,sans-serif">για ενοίκιο τ</text>
+  <text x="437" y="357" font-size="15" fill="#222" font-family="Century Gothic,Avenir,Segoe UI,Arial,sans-serif">που βρίσκεται στην οδό</text>
+  <line x1="437" y1="362" x2="920" y2="362" stroke="#555" stroke-dasharray="1 2.2"/>
+  <text x="550" y="392" font-size="14" fill="#222" font-family="Century Gothic,Avenir,Segoe UI,Arial,sans-serif">για το χρονικό διάστημα</text>
+  <line x1="437" y1="398" x2="925" y2="398" stroke="#555" stroke-dasharray="1 2.2"/>
+  <text x="924" y="428" font-size="15" text-anchor="end" fill="#222" font-family="Century Gothic,Avenir,Segoe UI,Arial,sans-serif">με την επιφύλαξη κάθε δικαιώματός μου.</text>
+  <line x1="437" y1="434" x2="925" y2="434" stroke="#555" stroke-dasharray="1 2.2"/>
+
+  <!-- αριστερό υποκουτί -->
+  <path d="M20 513 V372 Q20 364 28 364 H427 Q435 364 435 372 V513 Z" fill="#f1f0e6" stroke="#ef7d1f" stroke-width="1.4"/>
+  <text x="29" y="396" font-size="15" fill="#222" font-family="Century Gothic,Avenir,Segoe UI,Arial,sans-serif">Ενοίκιο</text>
+  <text x="29" y="433" font-size="15" fill="#222" font-family="Century Gothic,Avenir,Segoe UI,Arial,sans-serif">Χαρτόσημο</text>
+  <text x="29" y="471" font-size="15" fill="#222" font-family="Century Gothic,Avenir,Segoe UI,Arial,sans-serif">Συμπλ. Φόρος</text>
+  <text x="196" y="433" font-size="15" fill="#222" font-family="Century Gothic,Avenir,Segoe UI,Arial,sans-serif">%</text>
+  <text x="196" y="471" font-size="15" fill="#222" font-family="Century Gothic,Avenir,Segoe UI,Arial,sans-serif">%</text>
+  <text x="211" y="396" font-size="15" fill="#222" font-family="Century Gothic,Avenir,Segoe UI,Arial,sans-serif">:</text>
+  <text x="211" y="433" font-size="15" fill="#222" font-family="Century Gothic,Avenir,Segoe UI,Arial,sans-serif">:</text>
+  <text x="211" y="471" font-size="15" fill="#222" font-family="Century Gothic,Avenir,Segoe UI,Arial,sans-serif">:</text>
+  <line x1="21" y1="405" x2="433" y2="405" stroke="#555" stroke-dasharray="1 2.2"/>
+  <line x1="21" y1="442" x2="433" y2="442" stroke="#555" stroke-dasharray="1 2.2"/>
+  <line x1="21" y1="480" x2="433" y2="480" stroke="#555" stroke-dasharray="1 2.2"/>
+  <!-- Σύνολο -->
+  <rect x="20" y="513" width="415" height="48" fill="#fcdcc0"/>
+  <path d="M20 513 H211 V561 H28 Q20 561 20 553 Z" fill="#bcbcbb"/>
+  <path d="M20 513 H435" stroke="#8c8d8b" stroke-width="1.4"/>
+  <path d="M28 561 H427" stroke="#6c6d6c" stroke-width="2"/>
+  <text x="71" y="543" font-size="17" font-weight="700" font-style="italic" letter-spacing="3.6" fill="#111" font-family="Century Gothic,Avenir,Segoe UI,Arial,sans-serif">Σύνολο</text>
+
+  <!-- ΕΛΑΒΕ / ΠΛΗΡΩΣΕ -->
+  <rect x="441" y="442" width="490" height="103" rx="10" fill="#f1f0e6" stroke="#ef7d1f" stroke-width="1.4"/>
+  <text x="456" y="463" font-size="15" fill="#222" font-family="Century Gothic,Avenir,Segoe UI,Arial,sans-serif">ΕΛΑΒΕ Ο</text>
+  <text x="701" y="463" font-size="15" fill="#222" font-family="Century Gothic,Avenir,Segoe UI,Arial,sans-serif">ΠΛΗΡΩΣΕ Ο</text>
+</svg>
+
+<textarea id="issuer"   style="left:36px;top:52px;width:410px;height:158px;line-height:22px;font-size:15px" spellcheck="false"></textarea>
+<input id="date"        style="left:522px;top:72px;width:162px" autocomplete="off">
+<input id="no"          style="left:736px;top:62px;width:150px;height:34px;font-size:24px;font-weight:700;font-family:'Arial Narrow',Arial,sans-serif" autocomplete="off">
+<input id="eur"         class="r" readonly tabindex="-1" style="left:704px;top:116px;width:121px;height:34px;font-size:23px;font-weight:700">
+<input id="cents"       readonly tabindex="-1" style="left:843px;top:116px;width:84px;height:34px;font-size:23px;font-weight:700">
+<input id="payer"       style="left:568px;top:172px;width:366px" autocomplete="off">
+<input id="payer2"      style="left:474px;top:203px;width:460px" autocomplete="off">
+<textarea id="words"    style="left:140px;top:238px;width:760px;height:80px;line-height:27px;font-size:15px;padding-top:0" spellcheck="false"></textarea>
+<input id="prop"        style="left:133px;top:339px;width:298px" autocomplete="off">
+<input id="addr"        style="left:624px;top:339px;width:296px" autocomplete="off">
+<input id="addr2"       style="left:437px;top:375px;width:110px" autocomplete="off">
+<input id="period"      style="left:732px;top:375px;width:196px;font-size:13.5px" autocomplete="off">
+<input id="pay"         style="left:437px;top:411px;width:172px;font-size:13px" autocomplete="off">
+<input id="rent"        class="r" style="left:222px;top:382px;width:208px" autocomplete="off" inputmode="decimal">
+<input id="stampPct"    class="r" style="left:140px;top:419px;width:50px" autocomplete="off" inputmode="decimal">
+<input id="stamp"       class="r" readonly tabindex="-1" style="left:222px;top:419px;width:208px">
+<input id="taxPct"      class="r" style="left:140px;top:457px;width:50px" autocomplete="off" inputmode="decimal">
+<input id="tax"         class="r" readonly tabindex="-1" style="left:222px;top:457px;width:208px">
+<input id="total"       class="r" readonly tabindex="-1" style="left:220px;top:521px;width:210px;height:34px;font-size:21px;font-weight:700">
+<textarea id="recvBy"   style="left:450px;top:468px;width:232px;height:70px;line-height:20px;font-size:14px" spellcheck="false"></textarea>
+<textarea id="paidBy"   style="left:695px;top:468px;width:232px;height:70px;line-height:20px;font-size:14px" spellcheck="false"></textarea>
+</div>
+</div>
+
+<!-- Ιστορικό -->
+<dialog id="dHist">
+  <h2>Ιστορικό αποδείξεων</h2>
+  <input id="hFilter" placeholder="Αναζήτηση (αριθμός, όνομα, ακίνητο, μήνας…)">
+  <div class="scroll"><table>
+    <thead><tr><th>Α/Α</th><th>Ημ/νία</th><th>Μισθωτής</th><th>Ακίνητο</th><th>Διάστημα</th><th class="n">Σύνολο €</th><th></th></tr></thead>
+    <tbody id="hBody"></tbody>
+  </table></div>
+  <div class="foot">
+    <span id="hSum" style="margin-right:auto;font-size:13px;align-self:center"></span>
+    <button id="hExpJson">Εξαγωγή αντιγράφου (JSON)</button>
+    <button id="hExpCsv">Εξαγωγή CSV</button>
+    <button id="hImp">Εισαγωγή αντιγράφου</button>
+    <button class="primary" id="hClose">Κλείσιμο</button>
+  </div>
+  <input type="file" id="hFile" accept=".json,application/json" hidden>
+</dialog>
+
+<!-- Ρυθμίσεις -->
+<dialog id="dSet">
+  <h2>Ρυθμίσεις</h2>
+  <label>Στοιχεία εκδότη (πάνω αριστερό πλαίσιο)</label>
+  <textarea id="sIssuer" rows="6" placeholder="Επωνυμία / Ονοματεπώνυμο&#10;Διεύθυνση&#10;ΑΦΜ – ΔΟΥ"></textarea>
+  <div class="row">
+    <div><label>Όνομα αυτού που εισπράττει («ΕΛΑΒΕ Ο»)</label><input id="sRecv"></div>
+    <div><label>Επόμενος αριθμός απόδειξης</label><input id="sNext" inputmode="numeric"></div>
+  </div>
+  <div class="row">
+    <div><label>Προεπιλεγμένο Χαρτόσημο %</label><input id="sStamp" inputmode="decimal"></div>
+    <div><label>Προεπιλεγμένος Συμπλ. Φόρος %</label><input id="sTax" inputmode="decimal"></div>
+  </div>
+  <div class="foot">
+    <button id="sCancel">Άκυρο</button>
+    <button class="primary" id="sOk">Αποθήκευση</button>
+  </div>
+</dialog>
+
+<!-- Cloud -->
+<dialog id="dCloud">
+  <h2>Συγχρονισμός στο cloud (Firebase)</h2>
+  <p id="cFileWarn" style="display:none;background:#fff3cd;border:1px solid #e0c060;border-radius:6px;padding:8px;font-size:13px;margin:0 0 8px">
+    ⚠ Η εφαρμογή ανοίχτηκε ως τοπικό αρχείο (file://). Το Firebase Authentication δεν λειτουργεί έτσι· η σύνδεση απαιτεί να ανοίγει η σελίδα από διεύθυνση https:// (π.χ. Firebase Hosting).
+  </p>
+  <label>Επικολλήστε το «firebaseConfig» του νέου σας έργου (όπως εμφανίζεται στην κονσόλα Firebase)</label>
+  <textarea id="cCfg" rows="8" spellcheck="false" placeholder='const firebaseConfig = {&#10;  apiKey: "...",&#10;  authDomain: "...firebaseapp.com",&#10;  projectId: "...",&#10;  storageBucket: "...",&#10;  messagingSenderId: "...",&#10;  appId: "..."&#10;};'></textarea>
+  <div class="foot" style="justify-content:flex-start"><button id="cSaveCfg">Αποθήκευση ρυθμίσεων cloud</button><button id="cClearCfg">Αφαίρεση</button></div>
+  <label style="margin-top:12px">Σύνδεση</label>
+  <div class="row"><div><input id="cEmail" type="email" placeholder="email"></div><div><input id="cPass" type="password" placeholder="κωδικός (6+ χαρακτήρες)"></div></div>
+  <div class="foot" style="justify-content:flex-start">
+    <button id="cLogin" class="primary">Σύνδεση</button>
+    <button id="cSignup">Δημιουργία λογαριασμού</button>
+    <button id="cGoogle">Σύνδεση με Google</button>
+    <button id="cOut">Αποσύνδεση</button>
+  </div>
+  <p id="cStatus" style="font-size:13px;margin:10px 0 0;color:#444">Μη συνδεδεμένο</p>
+  <div class="foot"><button id="cClose" class="primary">Κλείσιμο</button></div>
+</dialog>
+
+<div id="toast"></div>
+
+<script>
+(function(){
+'use strict';
+const KEY='apodeixeis_enoikiou_v1';
+const $=id=>document.getElementById(id);
+const rk=h=>(h.pid||'')+'#'+h.no;   // μοναδικό κλειδί απόδειξης: ακίνητο + αριθμός
+let curPid='';                       // ακίνητο (preset) της τρέχουσας απόδειξης
+const FIELDS=['issuer','date','no','payer','payer2','words','prop','addr','addr2','period','rent','stampPct','stamp','taxPct','tax','total','eur','cents','recvBy','paidBy','pay'];
+const MONTHS=['Ιανουάριο','Φεβρουάριο','Μάρτιο','Απρίλιο','Μάιο','Ιούνιο','Ιούλιο','Αύγουστο','Σεπτέμβριο','Οκτώβριο','Νοέμβριο','Δεκέμβριο'];
+
+/* ---------- αποθήκευση ---------- */
+let DB=load();
+function load(){
+  const d={history:[],presets:[],settings:{}};
+  try{Object.assign(d,JSON.parse(localStorage.getItem(KEY)||'{}'));}catch(e){}
+  d.presets.forEach(p=>{if(!p.pid)p.pid='p:'+p.label;});
+  return d;
+}
+function persist(){try{localStorage.setItem(KEY,JSON.stringify(DB));return true;}catch(e){toast('Δεν ήταν δυνατή η αποθήκευση στον περιηγητή');return false;}}
+let tt;function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),2200);}
+
+/* ---------- μορφοποίηση κειμένου ---------- */
+const FMT_IDS=['issuer','date','no','eur','cents','payer','payer2','words','prop','addr','addr2','period','pay','rent','stampPct','stamp','taxPct','tax','total','recvBy','paidBy'];
+const ORIG={};
+FMT_IDS.forEach(id=>{const st=$(id).style;ORIG[id]={ff:st.fontFamily,fs:st.fontSize,fw:st.fontWeight,fi:st.fontStyle,c:st.color};});
+let STYLES={},cur=null;
+function paint(id){
+  const el=$(id),s=STYLES[id]||{},o=ORIG[id];
+  el.style.fontFamily=s.ff||o.ff;
+  el.style.fontSize=s.fs?s.fs+'px':o.fs;
+  el.style.fontWeight=s.b===undefined?o.fw:(s.b?'700':'400');
+  el.style.fontStyle=s.i===undefined?o.fi:(s.i?'italic':'normal');
+  el.style.color=s.c||o.c;
+}
+const toHex=c=>{const m=c.match(/\d+/g)||[0,0,0];return '#'+m.slice(0,3).map(x=>(+x).toString(16).padStart(2,'0')).join('');};
+function syncFmt(){
+  if(!cur)return;
+  const cs=getComputedStyle($(cur));
+  const first=cs.fontFamily.split(',')[0].replace(/["']/g,'').trim().toLowerCase();
+  const op=[...$('fFont').options].find(o=>o.textContent.toLowerCase()===first);
+  $('fFont').value=op?op.value:'';
+  $('fSize').value=Math.round(parseFloat(cs.fontSize));
+  $('fColor').value=toHex(cs.color);
+  $('fBold').classList.toggle('on',parseInt(cs.fontWeight,10)>=600);
+  $('fItal').classList.toggle('on',cs.fontStyle==='italic');
+}
+function setStyles(m){STYLES=JSON.parse(JSON.stringify(m||{}));FMT_IDS.forEach(paint);syncFmt();}
+function setProp(k,v){
+  if(!cur){toast('Κάντε πρώτα κλικ σε ένα πεδίο της απόδειξης');return;}
+  (STYLES[cur]=STYLES[cur]||{})[k]=v;paint(cur);syncFmt();
+}
+$('sheet').addEventListener('focusin',e=>{
+  const id=e.target.id;if(!FMT_IDS.includes(id))return;
+  if(cur)$(cur).classList.remove('sel');
+  cur=id;$(cur).classList.add('sel');syncFmt();
+});
+$('fFont').addEventListener('change',()=>setProp('ff',$('fFont').value));
+$('fSize').addEventListener('input',()=>{const v=parseFloat($('fSize').value);if(v>=6&&v<=60)setProp('fs',v);});
+$('fColor').addEventListener('input',()=>setProp('c',$('fColor').value));
+$('fBold').addEventListener('click',()=>{if(cur)setProp('b',!(parseInt(getComputedStyle($(cur)).fontWeight,10)>=600));else setProp();});
+$('fItal').addEventListener('click',()=>{if(cur)setProp('i',getComputedStyle($(cur)).fontStyle!=='italic');else setProp();});
+$('fAll').addEventListener('click',()=>{
+  if(!cur){toast('Κάντε πρώτα κλικ σε ένα πεδίο της απόδειξης');return;}
+  const cs=getComputedStyle($(cur)),ff=$('fFont').value,c=toHex(cs.color);
+  FMT_IDS.forEach(id=>{const s=STYLES[id]=STYLES[id]||{};if(ff)s.ff=ff;s.c=c;paint(id);});
+  syncFmt();toast('Εφαρμόστηκε σε όλα τα πεδία');
+});
+$('fDef').addEventListener('click',()=>{DB.settings.styles=JSON.parse(JSON.stringify(STYLES));persist();cloudPushMeta();toast('Η μορφοποίηση αποθηκεύτηκε ως προεπιλογή');});
+/* δικές μου γραμματοσειρές */
+const FKEY='apodeixeis_fonts_v1';
+function addFontOption(name){
+  const g=$('fCustom');
+  if([...g.children].some(o=>o.textContent===name))return;
+  const o=document.createElement('option');o.textContent=name;o.value='"'+name+'",cursive';g.appendChild(o);
+}
+function loadCustomFonts(){
+  let a=[];try{a=JSON.parse(localStorage.getItem(FKEY)||'[]');}catch(e){}
+  a.forEach(f=>{
+    try{
+      const buf=Uint8Array.from(atob(f.data),c=>c.charCodeAt(0)).buffer;
+      new FontFace(f.name,buf).load().then(x=>{document.fonts.add(x);addFontOption(f.name);syncFmt();}).catch(err=>console.error('Σφάλμα φόρτωσης γραμματοσειράς',f.name,err));
+    }catch(err){console.error('Σφάλμα φόρτωσης γραμματοσειράς',f.name,err);}
+  });
+}
+$('fLoad').addEventListener('click',()=>$('fFile').click());
+$('fFile').addEventListener('change',e=>{
+  const f=e.target.files[0];e.target.value='';if(!f)return;
+  if(f.size>2.5*1024*1024){toast('Το αρχείο είναι πολύ μεγάλο (μέγιστο 2,5 MB)');return;}
+  const rd=new FileReader();
+  rd.onload=()=>{
+    const name=f.name.replace(/\.[^.]+$/,'').replace(/["'\\]/g,'').trim()||'Γραμματοσειρά';
+    const buf=rd.result;
+    new FontFace(name,buf).load().then(x=>{
+      document.fonts.add(x);addFontOption(name);
+      let bin='';const u=new Uint8Array(buf);
+      for(let i=0;i<u.length;i+=0x8000)bin+=String.fromCharCode.apply(null,u.subarray(i,i+0x8000));
+      try{
+        const a=JSON.parse(localStorage.getItem(FKEY)||'[]').filter(z=>z.name!==name);
+        a.push({name,data:btoa(bin)});localStorage.setItem(FKEY,JSON.stringify(a));
+      }catch(err){console.error(err);toast('Η γραμματοσειρά φορτώθηκε αλλά δεν αποθηκεύτηκε μόνιμα (έλλειψη χώρου)');}
+      $('fFont').value='"'+name+'",cursive';
+      if(cur)setProp('ff',$('fFont').value);else toast('Φορτώθηκε: '+name+'. Κάντε κλικ σε πεδίο και επιλέξτε την.');
+    }).catch(err=>{console.error(err);toast('Μη έγκυρο αρχείο γραμματοσειράς');});
+  };
+  rd.readAsArrayBuffer(f);
+});
+loadCustomFonts();
+$('fReset').addEventListener('click',()=>{delete DB.settings.styles;persist();cloudPushMeta();setStyles({});toast('Επαναφορά αρχικής μορφοποίησης');});
+
+/* ---------- αριθμοί ---------- */
+function parse(s){
+  s=String(s||'').trim().replace(/\s|€/g,'');
+  if(!s)return NaN;
+  if(s.indexOf(',')>=0)s=s.replace(/\./g,'').replace(',','.');
+  return parseFloat(s);
+}
+const r2=x=>Math.round((x+Number.EPSILON)*100)/100;
+function fmt(n){
+  const [i,d]=Math.abs(n).toFixed(2).split('.');
+  return (n<0?'-':'')+i.replace(/\B(?=(\d{3})+(?!\d))/g,'.')+','+d;
+}
+
+/* ---------- ποσό ολογράφως ---------- */
+const U=['','ένα','δύο','τρία','τέσσερα','πέντε','έξι','επτά','οκτώ','εννέα','δέκα','έντεκα','δώδεκα','δεκατρία','δεκατέσσερα','δεκαπέντε','δεκαέξι','δεκαεπτά','δεκαοκτώ','δεκαεννέα'];
+const UF=U.slice();UF[1]='μία';UF[3]='τρεις';UF[4]='τέσσερις';UF[13]='δεκατρείς';UF[14]='δεκατέσσερις';
+const T=['','','είκοσι','τριάντα','σαράντα','πενήντα','εξήντα','εβδομήντα','ογδόντα','ενενήντα'];
+const H=['','εκατό','διακόσια','τριακόσια','τετρακόσια','πεντακόσια','εξακόσια','επτακόσια','οκτακόσια','εννιακόσια'];
+const HF=H.map(s=>s.replace(/ια$/,'ιες'));
+function w3(n,f){
+  const h=Math.floor(n/100),r=n%100,o=[];
+  if(h){let s=(f?HF:H)[h];if(h===1&&r)s='εκατόν';o.push(s);}
+  if(r){if(r<20)o.push((f?UF:U)[r]);else{o.push(T[Math.floor(r/10)]);if(r%10)o.push((f?UF:U)[r%10]);}}
+  return o.join(' ');
+}
+function words(n){
+  if(n===0)return 'μηδέν';
+  const t=Math.floor(n/1000),r=n%1000,o=[];
+  if(t)o.push(t===1?'χίλια':w3(t,true)+' χιλιάδες');
+  if(r)o.push(w3(r,false));
+  return o.join(' ');
+}
+function amountWords(eur,c){
+  if(eur>=1000000)return String(eur)+' ευρώ'+(c?' και '+c+' λεπτά':'');
+  let s='';
+  if(eur>0||c===0)s=words(eur)+' ευρώ';
+  if(c>0)s+=(s?' και ':'')+words(c)+(c===1?' λεπτό':' λεπτά');
+  return s.charAt(0).toUpperCase()+s.slice(1);
+}
+
+/* ---------- υπολογισμός ---------- */
+function recalc(){
+  const rent=parse($('rent').value);
+  if(isNaN(rent)){['stamp','tax','total','eur','cents'].forEach(k=>$(k).value='');$('words').value='';return;}
+  const sp=parse($('stampPct').value)||0, tp=parse($('taxPct').value)||0;
+  const st=r2(rent*sp/100), tx=r2(rent*tp/100), tot=r2(rent+st+tx);
+  $('stamp').value=sp?fmt(st):'';
+  $('tax').value=tp?fmt(tx):'';
+  $('total').value=fmt(tot);
+  const cents=Math.round(tot*100), e=Math.floor(cents/100), c=cents%100;
+  $('eur').value=e.toLocaleString('en-US').replace(/,/g,'.');
+  $('cents').value=String(c).padStart(2,'0');
+  $('words').value=amountWords(e,c);
+}
+['rent','stampPct','taxPct'].forEach(k=>$(k).addEventListener('input',recalc));
+$('rent').addEventListener('blur',()=>{const v=parse($('rent').value);if(!isNaN(v)){$('rent').value=fmt(v);recalc();}});
+
+/* ---------- χρονικό διάστημα ---------- */
+const pad=n=>String(n).padStart(2,'0');
+const iso=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const fromIso=s=>{const [y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d);};
+const gr=s=>{if(!s)return '';const [y,m,d]=s.split('-');return d+'/'+m+'/'+y;};
+function addMonths(d,n){const r=new Date(d.getFullYear(),d.getMonth()+n,1);const last=new Date(r.getFullYear(),r.getMonth()+1,0).getDate();r.setDate(Math.min(d.getDate(),last));return r;}
+function endFor(from){const e=addMonths(from,1);e.setDate(e.getDate()-1);return e;}
+function periodText(){const a=$('pFrom').value,b=$('pTo').value;if(!a&&!b)return;$('period').value=(a&&b)?gr(a)+' ως '+gr(b):gr(a||b);}
+$('pFrom').addEventListener('change',()=>{if($('pFrom').value)$('pTo').value=iso(endFor(fromIso($('pFrom').value)));periodText();});
+$('pTo').addEventListener('change',periodText);
+
+/* ---------- φόρμα ---------- */
+const todayStr=()=>{const d=new Date();return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear();};
+function collect(){const o={};FIELDS.forEach(k=>o[k]=$(k).value);o.pFrom=$('pFrom').value;o.pTo=$('pTo').value;o.styles=JSON.parse(JSON.stringify(STYLES));o.pid=curPid;return o;}
+function syncPayType(){const v=$('pay').value;$('payType').value=[...$('payType').options].some(o=>o.value===v)?v:'';}
+function syncPresetSel(){const i=DB.presets.findIndex(p=>p.pid===curPid);$('preset').value=(curPid&&i>=0)?String(i):'';}
+function apply(o){curPid=o.pid||'';syncPresetSel();FIELDS.forEach(k=>$(k).value=o[k]!=null?o[k]:'');$('pFrom').value=o.pFrom||'';$('pTo').value=o.pTo||'';syncPayType();setStyles(o.styles||DB.settings.styles||{});}
+$('payType').addEventListener('change',()=>{$('pay').value=$('payType').value;});
+$('pay').addEventListener('input',syncPayType);
+function nextNo(pid){
+  pid=pid||'';
+  const mx=DB.history.reduce((a,h)=>{if((h.pid||'')!==pid)return a;const n=parseInt(h.no,10);return isNaN(n)?a:Math.max(a,n);},0);
+  let base;
+  if(pid){const p=DB.presets.find(x=>x.pid===pid);base=p?(parseInt(p.next,10)||0):0;}
+  else base=parseInt(DB.settings.next,10)||0;
+  return String(Math.max(base,mx+1));
+}
+function newReceipt(){
+  const s=DB.settings;
+  const t=new Date();
+  apply({issuer:s.issuer||'',recvBy:s.recvBy||'',stampPct:s.stampPct||'',taxPct:s.taxPct||'',date:todayStr(),no:nextNo(),pFrom:iso(t),pTo:iso(endFor(t))});
+  periodText();
+  $('preset').value='';
+}
+function nextMonth(){
+  const o=collect();
+  const base=o.pTo?fromIso(o.pTo):(o.pFrom?endFor(fromIso(o.pFrom)):new Date());
+  const f=new Date(base.getFullYear(),base.getMonth(),base.getDate()+1);
+  o.pFrom=iso(f);o.pTo=iso(endFor(f));
+  o.date=todayStr();o.no=nextNo(o.pid);
+  apply(o);periodText();recalc();
+}
+function save(silent){
+  const o=collect();
+  if(!o.no.trim()){toast('Συμπληρώστε αριθμό απόδειξης');return false;}
+  if(isNaN(parse(o.rent))){toast('Συμπληρώστε το ποσό του ενοικίου');return false;}
+  const i=DB.history.findIndex(h=>rk(h)===rk(o));
+  o.saved=new Date().toISOString();
+  if(i>=0)DB.history[i]=o;else DB.history.push(o);
+  const n=parseInt(o.no,10);
+  if(!isNaN(n)){
+    if(o.pid){
+      const p=DB.presets.find(x=>x.pid===o.pid);
+      if(p&&n+1>=(parseInt(p.next,10)||0)){
+        p.next=String(n+1);
+        if(o.pTo){const d=fromIso(o.pTo);d.setDate(d.getDate()+1);p.nextFrom=iso(d);}
+      }
+    }else DB.settings.next=String(Math.max(parseInt(DB.settings.next,10)||0,n+1));
+  }
+  const ok=persist();
+  if(ok){cloudPushReceipt(o);if(o.pid)cloudPushMeta();}
+  if(ok&&!silent)toast('Η απόδειξη αποθηκεύτηκε');
+  return ok;
+}
+
+/* ---------- μισθωτές / ακίνητα ---------- */
+function renderPresets(){
+  const sel=$('preset');const cur=sel.value;
+  sel.innerHTML='<option value="">— Ακίνητο / Μισθωτής —</option>';
+  DB.presets.forEach((p,i)=>{const o=document.createElement('option');o.value=i;o.textContent=p.label;sel.appendChild(o);});
+  sel.value=cur;
+}
+const PK=['payer','payer2','prop','addr','addr2','rent','stampPct','taxPct','issuer','recvBy','paidBy','pay'];
+$('preset').addEventListener('change',()=>{
+  const p=DB.presets[$('preset').value];
+  if(!p){curPid='';return;}
+  PK.forEach(k=>$(k).value=p[k]||'');
+  curPid=p.pid;
+  $('no').value=nextNo(curPid);
+  $('date').value=todayStr();
+  if(p.nextFrom){$('pFrom').value=p.nextFrom;$('pTo').value=iso(endFor(fromIso(p.nextFrom)));periodText();}
+  syncPayType();recalc();
+});
+$('bSavePreset').addEventListener('click',()=>{
+  const o=collect();
+  if(!o.payer.trim()&&!o.prop.trim()){toast('Συμπληρώστε τουλάχιστον μισθωτή ή ακίνητο');return;}
+  const label=prompt('Όνομα καταχώρισης:',(o.payer+(o.prop?' – '+o.prop:'')).trim());
+  if(!label)return;
+  const p={label};PK.forEach(k=>p[k]=o[k]);
+  const i=DB.presets.findIndex(x=>x.label===label);
+  if(i>=0){const old=DB.presets[i];p.pid=old.pid;p.next=old.next;p.nextFrom=old.nextFrom;DB.presets[i]=p;}
+  else{p.pid='p:'+label;p.next=o.no;p.nextFrom=o.pFrom||'';DB.presets.push(p);}
+  curPid=p.pid;
+  persist();cloudPushMeta();renderPresets();syncPresetSel();toast('Αποθηκεύτηκε');
+});
+$('bDelPreset').addEventListener('click',()=>{
+  const i=$('preset').value;if(i==='')return;
+  if(!confirm('Διαγραφή «'+DB.presets[i].label+'»;'))return;
+  if(DB.presets[i].pid===curPid)curPid='';DB.presets.splice(i,1);persist();cloudPushMeta();renderPresets();
+});
+
+/* ---------- κουμπιά ---------- */
+$('bNew').addEventListener('click',()=>{newReceipt();recalc();});
+$('bNext').addEventListener('click',nextMonth);
+$('bSave').addEventListener('click',()=>save());
+$('bPrint').addEventListener('click',()=>{if(save(true))window.print();});
+
+/* ---------- ιστορικό ---------- */
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function renderHist(){
+  const q=$('hFilter').value.trim().toLowerCase();
+  const rows=DB.history.slice().sort((a,b)=>(parseInt(b.no,10)||0)-(parseInt(a.no,10)||0))
+    .filter(h=>!q||[h.no,h.payer,h.prop,h.period,h.date,h.addr].join(' ').toLowerCase().includes(q));
+  $('hBody').innerHTML=rows.map(h=>`<tr><td>${esc(h.no)}</td><td>${esc(h.date)}</td><td>${esc(h.payer)}</td><td>${esc(h.prop)}</td><td>${esc(h.period)}</td><td class="n">${esc(h.total)}</td>
+    <td class="n"><button data-o="${esc(rk(h))}">Άνοιγμα</button> <button data-d="${esc(rk(h))}">✕</button></td></tr>`).join('')
+    ||'<tr><td colspan="7" style="text-align:center;color:#888;padding:18px">Δεν υπάρχουν αποδείξεις</td></tr>';
+  const sum=rows.reduce((a,h)=>a+(parse(h.total)||0),0);
+  $('hSum').textContent=rows.length+' αποδείξεις · Σύνολο: '+fmt(sum)+' €';
+}
+$('bHist').addEventListener('click',()=>{$('hFilter').value='';renderHist();$('dHist').showModal();});
+$('hFilter').addEventListener('input',renderHist);
+$('hClose').addEventListener('click',()=>$('dHist').close());
+$('hBody').addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.o){const h=DB.history.find(x=>rk(x)===b.dataset.o);if(h){apply(h);recalc();$('dHist').close();}}
+  if(b.dataset.d){if(confirm('Διαγραφή απόδειξης Νο '+b.dataset.d.split('#')[1]+';')){DB.history=DB.history.filter(x=>rk(x)!==b.dataset.d);persist();cloudDelReceipt(b.dataset.d);renderHist();}}
+});
+function download(name,text,type){
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;
+  document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);
+}
+$('hExpJson').addEventListener('click',()=>download('apodeixeis-backup.json',JSON.stringify(DB,null,1),'application/json'));
+$('hExpCsv').addEventListener('click',()=>{
+  const cols=[['no','Α/Α'],['date','Ημερομηνία'],['payer','Μισθωτής'],['prop','Ακίνητο'],['addr','Οδός'],['period','Χρονικό διάστημα'],['rent','Ενοίκιο'],['stamp','Χαρτόσημο'],['tax','Συμπλ. Φόρος'],['total','Σύνολο']];
+  const q=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
+  const lines=[cols.map(c=>q(c[1])).join(';')].concat(DB.history.map(h=>cols.map(c=>q(h[c[0]])).join(';')));
+  download('apodeixeis.csv','\ufeff'+lines.join('\r\n'),'text/csv;charset=utf-8');
+});
+$('hImp').addEventListener('click',()=>$('hFile').click());
+$('hFile').addEventListener('change',e=>{
+  const f=e.target.files[0];if(!f)return;
+  const rd=new FileReader();
+  rd.onload=()=>{
+    try{
+      const j=JSON.parse(rd.result);
+      if(!Array.isArray(j.history))throw 0;
+      j.history.forEach(h=>{const i=DB.history.findIndex(x=>rk(x)===rk(h));if(i>=0)DB.history[i]=h;else DB.history.push(h);});
+      (j.presets||[]).forEach(p=>{if(!p.pid)p.pid='p:'+p.label;if(!DB.presets.some(x=>x.label===p.label))DB.presets.push(p);});
+      DB.settings=Object.assign({},j.settings||{},DB.settings);
+      persist();cloudPushAll();renderPresets();renderHist();toast('Η εισαγωγή ολοκληρώθηκε');
+    }catch(err){toast('Μη έγκυρο αρχείο αντιγράφου');}
+    e.target.value='';
+  };
+  rd.readAsText(f);
+});
+
+/* ---------- ρυθμίσεις ---------- */
+$('bSet').addEventListener('click',()=>{
+  const s=DB.settings;
+  $('sIssuer').value=s.issuer||'';$('sRecv').value=s.recvBy||'';$('sNext').value=nextNo('');
+  $('sStamp').value=s.stampPct||'';$('sTax').value=s.taxPct||'';
+  $('dSet').showModal();
+});
+$('sCancel').addEventListener('click',()=>$('dSet').close());
+$('sOk').addEventListener('click',()=>{
+  const s=DB.settings;
+  s.issuer=$('sIssuer').value;s.recvBy=$('sRecv').value;
+  s.stampPct=$('sStamp').value;s.taxPct=$('sTax').value;
+  const n=parseInt($('sNext').value,10);if(!isNaN(n))s.next=String(n);
+  persist();cloudPushMeta();
+  // εφαρμογή στην τρέχουσα απόδειξη
+  if(!curPid){$('issuer').value=s.issuer||'';$('recvBy').value=s.recvBy||'';}
+  if(!$('rent').value){$('stampPct').value=s.stampPct||'';$('taxPct').value=s.taxPct||'';}
+  if(!curPid&&!DB.history.some(h=>rk(h)===rk({pid:'',no:$('no').value})))$('no').value=nextNo('');
+  $('dSet').close();toast('Οι ρυθμίσεις αποθηκεύτηκαν');
+});
+
+/* ---------- κλιμάκωση οθόνης ---------- */
+function fit(){
+  const w=Math.min(1000,document.documentElement.clientWidth-16),s=w/1000;
+  $('sheet').style.transform='scale('+s+')';
+  $('stage').style.width=w+'px';$('stage').style.height=(610*s)+'px';
+}
+window.addEventListener('resize',fit);
+
+/* ---------- Cloud (Firebase) ---------- */
+const CKEY='apodeixeis_cloud_v1';
+const cloud={cfg:null,user:null,db:null,unsub:null};
+// Προαιρετικά: επικολλήστε εδώ το firebaseConfig ως αντικείμενο {apiKey:"...",...} ώστε να μην χρειάζεται επικόλληση σε κάθε συσκευή.
+const DEFAULT_CFG=null;
+function cloudStatus(msg){
+  $('cStatus').textContent=msg;
+  $('bCloud').textContent=cloud.user?'☁ '+(cloud.user.email||'συνδεδεμένος'):'☁ Cloud';
+}
+function cloudErr(err,what){
+  console.error('Σφάλμα cloud ('+what+')',err);
+  cloudStatus('Σφάλμα: '+(err&&err.message?err.message:err));
+  toast('Σφάλμα cloud: '+(err&&err.code?err.code:what));
+}
+function parseCfg(t){const o={};String(t).replace(/([A-Za-z]\w*)\s*:\s*["'`]([^"'`]*)["'`]/g,(m,k,v)=>{o[k]=v;return m;});return o;}
+function loadScript(src){return new Promise((res,rej)=>{const e=document.createElement('script');e.src=src;e.onload=res;e.onerror=()=>rej(new Error('Αδυναμία φόρτωσης: '+src));document.head.appendChild(e);});}
+async function cloudInit(){
+  let cfg=null;try{cfg=JSON.parse(localStorage.getItem(CKEY)||'null');}catch(e){}
+  if(!cfg)cfg=DEFAULT_CFG;
+  if(!cfg){cloudStatus('Δεν έχει οριστεί σύνδεση cloud');return;}
+  try{
+    if(!window.firebase){
+      const b='https://www.gstatic.com/firebasejs/10.12.2/firebase-';
+      await loadScript(b+'app-compat.js');await loadScript(b+'auth-compat.js');await loadScript(b+'firestore-compat.js');
+    }
+    if(!firebase.apps.length)firebase.initializeApp(cfg);
+    cloud.cfg=cfg;
+    firebase.auth().onAuthStateChanged(u=>{cloud.user=u;if(u)cloudStart();else{cloudStop();cloudStatus('Μη συνδεδεμένο');}});
+  }catch(err){cloudErr(err,'εκκίνηση');}
+}
+function cloudStop(){if(cloud.unsub){cloud.unsub();cloud.unsub=null;}}
+const uref=()=>cloud.db.collection('users').doc(cloud.user.uid);
+function mergeReceipt(h){
+  const i=DB.history.findIndex(x=>rk(x)===rk(h));
+  if(i<0){DB.history.push(h);return true;}
+  if((h.saved||'')>(DB.history[i].saved||'')){DB.history[i]=h;return true;}
+  return false;
+}
+async function cloudStart(){
+  try{
+    cloud.db=firebase.firestore();
+    cloudStatus('Συγχρονισμός…');
+    const ur=uref();
+    const [ds,dp]=await Promise.all([ur.collection('meta').doc('settings').get(),ur.collection('meta').doc('presets').get()]);
+    let pushMeta=false;
+    if(ds.exists){
+      const cs=JSON.parse(ds.data().json||'{}');
+      const nx=Math.max(parseInt(DB.settings.next,10)||0,parseInt(cs.next,10)||0);
+      DB.settings=Object.assign({},DB.settings,cs);if(nx)DB.settings.next=String(nx);
+    }else pushMeta=true;
+    if(dp.exists){
+      const cp=JSON.parse(dp.data().json||'[]');
+      DB.presets.forEach(p=>{if(!cp.some(x=>x.label===p.label)){cp.push(p);pushMeta=true;}});
+      DB.presets=cp;
+    }else if(DB.presets.length)pushMeta=true;
+    persist();renderPresets();
+    if(pushMeta)cloudPushMeta();
+    let first=true;
+    cloudStop();
+    cloud.unsub=ur.collection('receipts').onSnapshot(snap=>{
+      let ch=false;
+      snap.docChanges().forEach(c=>{
+        let h;try{h=JSON.parse(c.doc.data().json);}catch(e){return;}
+        if(c.type==='removed'){const n=DB.history.length;DB.history=DB.history.filter(x=>rk(x)!==rk(h));if(DB.history.length!==n)ch=true;}
+        else if(mergeReceipt(h))ch=true;
+      });
+      if(first){
+        first=false;
+        const inCloud=new Map();
+        snap.docs.forEach(d=>{try{const h=JSON.parse(d.data().json);inCloud.set(rk(h),h);}catch(e){}});
+        DB.history.forEach(h=>{const c=inCloud.get(rk(h));if(!c||(h.saved||'')>(c.saved||''))cloudPushReceipt(h);});
+      }
+      if(ch){persist();if($('dHist').open)renderHist();}
+      cloudStatus('Συνδεδεμένος: '+(cloud.user.email||cloud.user.uid)+' · '+DB.history.length+' αποδείξεις συγχρονισμένες');
+    },err=>cloudErr(err,'συγχρονισμός'));
+  }catch(err){cloudErr(err,'έναρξη συγχρονισμού');}
+}
+async function cloudPushReceipt(o){
+  if(!cloud.user||!cloud.db)return;
+  try{await uref().collection('receipts').doc(encodeURIComponent(rk(o))).set({json:JSON.stringify(o),saved:o.saved||''});}
+  catch(err){cloudErr(err,'αποθήκευση απόδειξης');}
+}
+async function cloudDelReceipt(key){
+  if(!cloud.user||!cloud.db)return;
+  try{await uref().collection('receipts').doc(encodeURIComponent(key)).delete();}
+  catch(err){cloudErr(err,'διαγραφή απόδειξης');}
+}
+async function cloudPushMeta(){
+  if(!cloud.user||!cloud.db)return;
+  try{
+    const ur=uref();
+    await ur.collection('meta').doc('settings').set({json:JSON.stringify(DB.settings)});
+    await ur.collection('meta').doc('presets').set({json:JSON.stringify(DB.presets)});
+  }catch(err){cloudErr(err,'αποθήκευση ρυθμίσεων');}
+}
+function cloudPushAll(){DB.history.forEach(cloudPushReceipt);cloudPushMeta();}
+
+$('bCloud').addEventListener('click',()=>{
+  $('cFileWarn').style.display=location.protocol==='file:'?'block':'none';
+  try{const c=localStorage.getItem(CKEY);$('cCfg').value=c?JSON.stringify(JSON.parse(c),null,2):'';}catch(e){}
+  $('dCloud').showModal();
+});
+$('cClose').addEventListener('click',()=>$('dCloud').close());
+$('cSaveCfg').addEventListener('click',()=>{
+  const c=parseCfg($('cCfg').value);
+  if(!c.apiKey||!c.projectId||!c.authDomain){toast('Λείπουν apiKey, authDomain ή projectId');return;}
+  try{localStorage.setItem(CKEY,JSON.stringify(c));}catch(e){toast('Αδυναμία αποθήκευσης');return;}
+  if(window.firebase&&firebase.apps.length){cloudStatus('Οι ρυθμίσεις αποθηκεύτηκαν. Επαναφορτώστε τη σελίδα για να εφαρμοστούν.');return;}
+  cloudInit();toast('Οι ρυθμίσεις cloud αποθηκεύτηκαν');
+});
+$('cClearCfg').addEventListener('click',()=>{
+  if(!confirm('Αφαίρεση των ρυθμίσεων cloud από αυτόν τον περιηγητή; (Τα δεδομένα στο cloud δεν διαγράφονται.)'))return;
+  try{localStorage.removeItem(CKEY);}catch(e){}
+  $('cCfg').value='';cloudStatus('Οι ρυθμίσεις αφαιρέθηκαν. Επαναφορτώστε τη σελίδα.');
+});
+async function authDo(fn){
+  if(!cloud.cfg||!window.firebase){toast('Αποθηκεύστε πρώτα τις ρυθμίσεις cloud');return;}
+  try{await fn();}catch(err){cloudErr(err,'σύνδεση');}
+}
+$('cLogin').addEventListener('click',()=>authDo(()=>firebase.auth().signInWithEmailAndPassword($('cEmail').value.trim(),$('cPass').value)));
+$('cSignup').addEventListener('click',()=>authDo(()=>firebase.auth().createUserWithEmailAndPassword($('cEmail').value.trim(),$('cPass').value)));
+$('cGoogle').addEventListener('click',()=>authDo(()=>firebase.auth().signInWithPopup(new firebase.auth.GoogleAuthProvider())));
+$('cOut').addEventListener('click',()=>authDo(()=>firebase.auth().signOut()));
+
+/* ---------- εκκίνηση ---------- */
+renderPresets();newReceipt();fit();cloudInit();
+})();
+</script>
+</body>
+</html>

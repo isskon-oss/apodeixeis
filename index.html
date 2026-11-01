@@ -8,52 +8,100 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Mynerve&family=Playpen+Sans:wght@400;600&display=swap" rel="stylesheet">
 <style>
+  :root{--bg:#0b0d2b;--card:#11143a;--card2:#171b4a;--line:#232852;--txt:#e8eaff;--mut:#8d93c8;--blue:#3b82f6;--vio:#8b5cf6;--pink:#ec4899;--amber:#f5b83d;--red:#ff5c7a;--green:#34d399;--mono:"Cascadia Mono",Consolas,"Courier New",monospace}
   *{box-sizing:border-box}
-  html,body{margin:0;background:#cfcfca;font-family:"Segoe UI",Arial,sans-serif;color:#222}
-  .bars{position:sticky;top:0;z-index:5}
-  .bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:8px;background:#2f3133}
-  #fmtbar{background:#3a3d40;border-top:1px solid #555}
-  .bar input[type=color]{padding:0;width:36px;height:28px}
-  .bar input[type=number]{width:62px;cursor:text}
-  .bar input[type=date]{cursor:text;color-scheme:dark}
-  .bar button.on{background:#e8741a;border-color:#e8741a}
-  .bar button,.bar select,.bar input{font:13px inherit;font-family:inherit;padding:6px 10px;border-radius:6px;border:1px solid #666;background:#444;color:#fff;cursor:pointer}
-  .bar button:hover{background:#555}
-  .bar button.primary{background:#e8741a;border-color:#e8741a;font-weight:600}
-  .bar label{color:#ddd;font-size:13px;display:flex;align-items:center;gap:5px}
-  .bar input[type=month]{cursor:text;color-scheme:dark}
-  .bar .sep{width:1px;height:24px;background:#666;margin:0 4px}
-  #stage{margin:14px auto;position:relative}
-  .sheet{width:1000px;height:610px;position:absolute;left:0;top:0;transform-origin:0 0;background:#fbfaf4;box-shadow:0 2px 14px rgba(0,0,0,.35);
+  html,body{margin:0;background:var(--bg);font-family:"Segoe UI",Arial,sans-serif;color:var(--txt)}
+  body{background-image:radial-gradient(600px 400px at 0% 100%,rgba(59,130,246,.22),transparent 70%),radial-gradient(500px 300px at 100% 0%,rgba(236,72,153,.10),transparent 70%);background-attachment:fixed;min-height:100vh}
+  /* κεφαλίδα */
+  .hdr{display:flex;flex-wrap:wrap;align-items:center;gap:14px;padding:18px 24px;background:linear-gradient(90deg,#3b82f6 0%,#8b5cf6 55%,#ec4899 100%);box-shadow:0 4px 24px rgba(139,92,246,.35)}
+  .brand{display:flex;align-items:center;gap:12px;margin-right:auto}
+  .logo{width:34px;height:34px;border-radius:8px;background:#fff;display:grid;place-items:center;font-size:19px}
+  .hdr h1{margin:0;font-size:19px;font-weight:700;color:#fff;letter-spacing:.2px}
+  .hdr small{display:block;color:rgba(255,255,255,.75);font-size:11px;font-weight:600}
+  .chip{background:rgba(11,13,43,.45);border:1px solid rgba(255,255,255,.22);border-radius:999px;padding:6px 14px;font-size:12.5px;font-weight:600;color:#fff}
+  .chip b{font-family:var(--mono);margin-left:4px}
+  #who{color:rgba(255,255,255,.7);font-size:12px}
+  /* γραμμές εργαλείων */
+  .bars{position:sticky;top:0;z-index:5;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+  .bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 18px;background:rgba(11,13,43,.92);border-bottom:1px solid var(--line)}
+  #fmtbar{background:rgba(17,20,58,.94)}
+  .bar input[type=color]{padding:0;width:36px;height:30px}
+  .bar input[type=number]{width:64px;cursor:text}
+  .bar input[type=date],.bar input[type=month]{cursor:text;color-scheme:dark}
+  .bar button,.bar select,.bar input{font:13px inherit;font-family:inherit;padding:7px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.07);color:var(--txt);cursor:pointer;transition:background .15s,border-color .15s}
+  .bar select option,.bar select optgroup{background:#11143a;color:var(--txt)}
+  .bar button:hover,.bar select:hover{background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.35)}
+  .bar button.on{background:var(--vio);border-color:var(--vio)}
+  .bar button.primary{background:linear-gradient(90deg,var(--blue),var(--vio));border-color:transparent;font-weight:600;box-shadow:0 0 14px rgba(99,102,241,.55)}
+  .bar label{color:var(--mut);font-size:12.5px;display:flex;align-items:center;gap:6px}
+  .bar .sep{width:1px;height:24px;background:var(--line);margin:0 4px}
+  /* πίνακας */
+  .dash{max-width:1260px;margin:18px auto 0;padding:0 18px}
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .card .k{padding:14px 16px 4px;font-size:11px;font-weight:700;letter-spacing:1px;color:var(--mut);text-transform:uppercase}
+  .card .v{padding:2px 16px 12px;font-family:var(--mono);font-size:26px;font-weight:700}
+  .card .v.sm{font-size:19px;padding-top:8px}
+  .card .f{padding:8px 16px;border-top:1px dashed #343a7a;font-size:11.5px;color:var(--mut)}
+  .c-amber{color:var(--amber)}.c-red{color:var(--red)}.c-blue{color:#6c8cff}.c-green{color:var(--green)}
+  .panel{margin-top:14px;background:var(--card);border:1px solid var(--line);border-radius:10px}
+  .panel-h{display:flex;align-items:center;gap:8px;padding:14px 18px;cursor:pointer;user-select:none}
+  .panel-h h3{margin:0;font-size:15px;color:#6c8cff}
+  .panel-h small{color:var(--mut);font-size:11.5px}
+  .panel-h .tg{margin-left:auto;color:var(--mut);font-size:12px}
+  .upc{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;padding:0 18px 18px}
+  .panel.closed .upc{display:none}
+  .up{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px 14px;text-align:left;color:var(--txt);font:inherit;cursor:pointer;transition:border-color .15s,transform .15s}
+  .up:hover{border-color:var(--vio);transform:translateY(-1px)}
+  .up .t{display:flex;justify-content:space-between;gap:8px;font-weight:700;font-size:14px}
+  .up .t span{font-size:11px;font-weight:600}
+  .up .s{color:var(--mut);font-size:12px;margin:2px 0 10px}
+  .up .r{display:flex;justify-content:space-between;font-size:12.5px;padding:2px 0;color:#c9ccf0}
+  .up .r b{font-family:var(--mono);color:var(--txt)}
+  .badge{display:inline-block;padding:1px 9px;border-radius:999px;font-size:11px;font-weight:700}
+  .badge.green{background:rgba(52,211,153,.15);color:var(--green);border:1px solid rgba(52,211,153,.4)}
+  .badge.amber{background:rgba(245,184,61,.15);color:var(--amber);border:1px solid rgba(245,184,61,.4)}
+  .badge.red{background:rgba(255,92,122,.15);color:var(--red);border:1px solid rgba(255,92,122,.4)}
+  .empty{padding:0 18px 18px;color:var(--mut);font-size:13px}
+  /* απόδειξη (παραμένει «χαρτί») */
+  #stage{margin:18px auto;position:relative}
+  .sheet{width:1000px;height:610px;position:absolute;left:0;top:0;transform-origin:0 0;background:#fbfaf4;box-shadow:0 8px 40px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.06);border-radius:6px;
     -webkit-print-color-adjust:exact;print-color-adjust:exact}
   .sheet svg{position:absolute;left:0;top:0;width:1000px;height:610px}
   .sheet input,.sheet textarea{position:absolute;border:0;background:transparent;font:15px "Segoe UI",Arial,sans-serif;color:#10264d;padding:0 3px;outline:none;height:22px;resize:none;overflow:hidden}
   .sheet input:focus,.sheet textarea:focus{background:rgba(255,236,160,.45)}
   .sheet .sel{outline:1.5px dashed #e8741a;outline-offset:-1px}
   .r{text-align:right}
-  dialog{border:0;border-radius:10px;padding:18px;max-width:min(900px,94vw);width:100%;box-shadow:0 10px 40px rgba(0,0,0,.4)}
-  dialog::backdrop{background:rgba(0,0,0,.45)}
-  dialog h2{margin:0 0 10px;font-size:18px}
-  dialog label{display:block;font-size:13px;margin:8px 0 3px;color:#444}
-  dialog input,dialog textarea{width:100%;padding:6px 8px;border:1px solid #aaa;border-radius:5px;font:14px inherit;font-family:inherit}
+  /* παράθυρα διαλόγου */
+  dialog{border:1px solid var(--line);border-radius:12px;padding:20px;max-width:min(900px,94vw);width:100%;background:var(--card);color:var(--txt);box-shadow:0 14px 50px rgba(0,0,0,.6)}
+  dialog::backdrop{background:rgba(5,6,22,.7)}
+  dialog h2{margin:0 0 12px;font-size:18px;color:#fff}
+  dialog label{display:block;font-size:12.5px;margin:10px 0 4px;color:var(--mut)}
+  dialog input,dialog textarea{width:100%;padding:8px 10px;border:1px solid #2a2f63;border-radius:8px;font:14px inherit;font-family:inherit;background:var(--bg);color:var(--txt)}
+  dialog input:focus,dialog textarea:focus{outline:none;border-color:var(--vio)}
   dialog .row{display:flex;gap:10px}
   dialog .row>div{flex:1}
   dialog .foot{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap}
-  dialog button{padding:6px 12px;border-radius:6px;border:1px solid #999;background:#f2f2f2;cursor:pointer;font:13px inherit;font-family:inherit}
-  dialog button.primary{background:#e8741a;color:#fff;border-color:#e8741a}
+  dialog button{padding:7px 16px;border-radius:999px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.07);color:var(--txt);cursor:pointer;font:13px inherit;font-family:inherit}
+  dialog button:hover{background:rgba(255,255,255,.15)}
+  dialog button.primary{background:linear-gradient(90deg,var(--blue),var(--vio));border-color:transparent;color:#fff;font-weight:600;box-shadow:0 0 12px rgba(99,102,241,.5)}
+  .warn{display:none;background:rgba(245,184,61,.12);border:1px solid rgba(245,184,61,.4);color:var(--amber);border-radius:8px;padding:8px 10px;font-size:13px;margin:0 0 8px}
+  .mut{font-size:13px;margin:10px 0 0;color:var(--mut)}
   table{width:100%;border-collapse:collapse;font-size:13px}
-  th,td{padding:5px 7px;border-bottom:1px solid #ddd;text-align:left}
-  th{background:#f3f3f3;position:sticky;top:0}
-  td.n{text-align:right;white-space:nowrap}
-  .scroll{max-height:55vh;overflow:auto;border:1px solid #ddd;border-radius:6px;margin-top:8px}
-  #toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:8px 16px;border-radius:20px;font-size:13px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:20}
-  #toast.show{opacity:.95}
+  th,td{padding:7px 9px;border-bottom:1px solid var(--line);text-align:left}
+  th{background:var(--card2);color:var(--mut);font-size:11px;letter-spacing:.8px;text-transform:uppercase;position:sticky;top:0}
+  tbody tr:hover{background:rgba(139,92,246,.08)}
+  td.n{text-align:right;white-space:nowrap;font-family:var(--mono)}
+  .scroll{max-height:55vh;overflow:auto;border:1px solid var(--line);border-radius:8px;margin-top:8px}
+  #toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:linear-gradient(90deg,var(--blue),var(--vio));color:#fff;padding:9px 18px;border-radius:999px;font-size:13px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:20;box-shadow:0 4px 20px rgba(99,102,241,.5)}
+  #toast.show{opacity:.97}
+  @media(max-width:900px){.stats{grid-template-columns:repeat(2,1fr)}.hdr{padding:14px 16px}}
   @page{size:210mm 148mm;margin:0}
   @media print{
     html,body{background:#fff;width:210mm;height:148mm;overflow:hidden}
     .no-print,#toast{display:none!important}
     #stage{margin:0!important;width:210mm!important;height:148mm!important;position:relative}
-    .sheet{box-shadow:none;background:#fff;transform:scale(.7937)!important;left:0;top:37px}
+    .sheet{box-shadow:none;border-radius:0;background:#fff;transform:scale(.7937)!important;left:0;top:37px}
     .sheet input:focus,.sheet textarea:focus{background:transparent}
     .sheet .sel{outline:none}
   }
@@ -61,6 +109,12 @@
 </head>
 <body>
 
+<header class="hdr no-print">
+  <div class="brand"><div class="logo">🧾</div><div><h1>Αποδείξεις Ενοικίου</h1><small>συγχρονισμός σε πραγματικό χρόνο</small></div></div>
+  <span class="chip">Αποδείξεις <span id="hYear"></span> <b id="hCnt">0</b></span>
+  <span class="chip">Εισπράξεις <b id="hSumChip">0,00 €</b></span>
+  <span id="who"></span>
+</header>
 <div class="bars no-print">
 <div class="bar">
   <button id="bNew">Νέα απόδειξη</button>
@@ -115,6 +169,19 @@
   <button id="fReset" title="Επαναφορά της αρχικής μορφοποίησης">Επαναφορά</button>
 </div>
 </div>
+
+<section class="dash no-print" id="dash">
+  <div class="stats">
+    <div class="card"><div class="k">Αποδείξεις <span id="kY1"></span></div><div class="v c-blue" id="kCnt">0</div><div class="f">εκδοθείσες μέσα στη χρονιά</div></div>
+    <div class="card"><div class="k">Εισπράξεις <span id="kY2"></span></div><div class="v c-amber" id="kSum">0,00 €</div><div class="f">άθροισμα συνόλων αποδείξεων</div></div>
+    <div class="card"><div class="k">Τελευταία απόδειξη</div><div class="v sm" id="kLast">—</div><div class="f" id="kLastSub">δεν υπάρχουν ακόμη</div></div>
+    <div class="card"><div class="k">Ακίνητα / μισθωτές</div><div class="v c-green" id="kProp">0</div><div class="f">αποθηκευμένες καταχωρίσεις</div></div>
+  </div>
+  <div class="panel" id="panel">
+    <div class="panel-h" id="panelH"><span>📈</span><h3>Επόμενες αποδείξεις</h3><small>(πατήστε μια κάρτα για να φορτωθεί η φόρμα)</small><span class="tg" id="panelTg">▼</span></div>
+    <div class="upc" id="upc"></div>
+  </div>
+</section>
 
 <div id="stage">
 <div class="sheet" id="sheet">
@@ -264,7 +331,7 @@
 <!-- Cloud -->
 <dialog id="dCloud">
   <h2>Συγχρονισμός στο cloud (Firebase)</h2>
-  <p id="cFileWarn" style="display:none;background:#fff3cd;border:1px solid #e0c060;border-radius:6px;padding:8px;font-size:13px;margin:0 0 8px">
+  <p id="cFileWarn" class="warn">
     ⚠ Η εφαρμογή ανοίχτηκε ως τοπικό αρχείο (file://). Το Firebase Authentication δεν λειτουργεί έτσι· η σύνδεση απαιτεί να ανοίγει η σελίδα από διεύθυνση https:// (π.χ. Firebase Hosting).
   </p>
   <label>Επικολλήστε το «firebaseConfig» του νέου σας έργου (όπως εμφανίζεται στην κονσόλα Firebase)</label>
@@ -278,7 +345,7 @@
     <button id="cGoogle">Σύνδεση με Google</button>
     <button id="cOut">Αποσύνδεση</button>
   </div>
-  <p id="cStatus" style="font-size:13px;margin:10px 0 0;color:#444">Μη συνδεδεμένο</p>
+  <p id="cStatus" class="mut">Μη συνδεδεμένο</p>
   <div class="foot"><button id="cClose" class="primary">Κλείσιμο</button></div>
 </dialog>
 
@@ -302,7 +369,7 @@ function load(){
   d.presets.forEach(p=>{if(!p.pid)p.pid='p:'+p.label;});
   return d;
 }
-function persist(){try{localStorage.setItem(KEY,JSON.stringify(DB));return true;}catch(e){toast('Δεν ήταν δυνατή η αποθήκευση στον περιηγητή');return false;}}
+function persist(){try{localStorage.setItem(KEY,JSON.stringify(DB));renderDash();return true;}catch(e){toast('Δεν ήταν δυνατή η αποθήκευση στον περιηγητή');return false;}}
 let tt;function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),2200);}
 
 /* ---------- μορφοποίηση κειμένου ---------- */
@@ -521,6 +588,7 @@ function renderPresets(){
   sel.innerHTML='<option value="">— Ακίνητο / Μισθωτής —</option>';
   DB.presets.forEach((p,i)=>{const o=document.createElement('option');o.value=i;o.textContent=p.label;sel.appendChild(o);});
   sel.value=cur;
+  renderDash();
 }
 const PK=['payer','payer2','prop','addr','addr2','rent','stampPct','taxPct','issuer','recvBy','paidBy','pay'];
 $('preset').addEventListener('change',()=>{
@@ -565,7 +633,7 @@ function renderHist(){
     .filter(h=>!q||[h.no,h.payer,h.prop,h.period,h.date,h.addr].join(' ').toLowerCase().includes(q));
   $('hBody').innerHTML=rows.map(h=>`<tr><td>${esc(h.no)}</td><td>${esc(h.date)}</td><td>${esc(h.payer)}</td><td>${esc(h.prop)}</td><td>${esc(h.period)}</td><td class="n">${esc(h.total)}</td>
     <td class="n"><button data-o="${esc(rk(h))}">Άνοιγμα</button> <button data-d="${esc(rk(h))}">✕</button></td></tr>`).join('')
-    ||'<tr><td colspan="7" style="text-align:center;color:#888;padding:18px">Δεν υπάρχουν αποδείξεις</td></tr>';
+    ||'<tr><td colspan="7" style="text-align:center;color:#8d93c8;padding:18px">Δεν υπάρχουν αποδείξεις</td></tr>';
   const sum=rows.reduce((a,h)=>a+(parse(h.total)||0),0);
   $('hSum').textContent=rows.length+' αποδείξεις · Σύνολο: '+fmt(sum)+' €';
 }
@@ -643,6 +711,7 @@ const DEFAULT_CFG=null;
 function cloudStatus(msg){
   $('cStatus').textContent=msg;
   $('bCloud').textContent=cloud.user?'☁ '+(cloud.user.email||'συνδεδεμένος'):'☁ Cloud';
+  $('who').textContent=cloud.user?(cloud.user.email||''):'';
 }
 function cloudErr(err,what){
   console.error('Σφάλμα cloud ('+what+')',err);
@@ -759,8 +828,50 @@ $('cSignup').addEventListener('click',()=>authDo(()=>firebase.auth().createUserW
 $('cGoogle').addEventListener('click',()=>authDo(()=>firebase.auth().signInWithPopup(new firebase.auth.GoogleAuthProvider())));
 $('cOut').addEventListener('click',()=>authDo(()=>firebase.auth().signOut()));
 
+
+/* ---------- πίνακας ελέγχου ---------- */
+function renderDash(){
+  try{
+    const y=String(new Date().getFullYear());
+    const hy=DB.history.filter(h=>String(h.date||'').slice(-4)===y);
+    const sum=hy.reduce((a,h)=>a+(parse(h.total)||0),0);
+    ['hYear','kY1','kY2'].forEach(id=>$(id).textContent=y);
+    $('hCnt').textContent=hy.length;$('kCnt').textContent=hy.length;
+    $('hSumChip').textContent=fmt(sum)+' €';$('kSum').textContent=fmt(sum)+' €';
+    $('kProp').textContent=DB.presets.length;
+    const last=DB.history.slice().sort((a,b)=>String(b.saved||'').localeCompare(String(a.saved||'')))[0];
+    $('kLast').textContent=last?('Νο '+last.no+' · '+fmt(parse(last.total)||0)+' €'):'—';
+    $('kLastSub').textContent=last?(last.date+' · '+[last.addr,last.payer].filter(Boolean).join(' · ')):'δεν υπάρχουν ακόμη';
+    const t=new Date();t.setHours(0,0,0,0);
+    $('upc').innerHTML=DB.presets.length?DB.presets.map((p,i)=>{
+      let badge='',per='—';
+      if(p.nextFrom){
+        const nf=fromIso(p.nextFrom),d=Math.round((nf-t)/864e5);
+        per=gr(p.nextFrom)+' ως '+gr(iso(endFor(nf)));
+        badge=d<=0?['red',d===0?'σήμερα':'εκκρεμεί']:d<=5?['amber','σε '+d+' ημ.']:['green','σε '+d+' ημ.'];
+      }
+      return '<button class="up" data-i="'+i+'"><div class="t">'+esc(p.label)+(badge?'<span class="badge '+badge[0]+'">'+badge[1]+'</span>':'')+'</div>'
+        +'<div class="s">'+esc([p.addr,p.addr2].filter(Boolean).join(', '))+'</div>'
+        +'<div class="r">Επόμενη απόδειξη<b>Νο '+esc(nextNo(p.pid))+'</b></div>'
+        +'<div class="r">Περίοδος<b>'+esc(per)+'</b></div>'
+        +'<div class="r">Ποσό<b>'+esc(p.rent||'—')+(p.rent?' €':'')+'</b></div></button>';
+    }).join(''):'<div class="empty">Δεν υπάρχουν αποθηκευμένα ακίνητα. Συμπληρώστε μια απόδειξη και πατήστε «+ Αποθήκευση μισθωτή».</div>';
+  }catch(e){console.error('renderDash',e);}
+}
+$('upc').addEventListener('click',e=>{
+  const b=e.target.closest('.up');if(!b)return;
+  $('preset').value=b.dataset.i;$('preset').dispatchEvent(new Event('change'));
+  window.scrollTo({top:0,behavior:'smooth'});toast('Φορτώθηκε: '+DB.presets[b.dataset.i].label);
+});
+(function(){
+  const K='apodeixeis_dash_closed',pn=$('panel');
+  const set=c=>{pn.classList.toggle('closed',c);$('panelTg').textContent=c?'▶':'▼';};
+  try{set(localStorage.getItem(K)==='1');}catch(e){}
+  $('panelH').addEventListener('click',()=>{const c=!pn.classList.contains('closed');set(c);try{localStorage.setItem(K,c?'1':'0');}catch(e){}});
+})();
+
 /* ---------- εκκίνηση ---------- */
-renderPresets();newReceipt();fit();cloudInit();
+renderPresets();newReceipt();fit();renderDash();cloudInit();
 })();
 </script>
 </body>
